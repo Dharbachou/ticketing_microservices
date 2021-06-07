@@ -19,7 +19,7 @@ app.use(json());
 app.use(
     cookieSession({
         signed: false,
-        secure: node_env
+        secure: false
     })
 );
 app.use(currentUser);
