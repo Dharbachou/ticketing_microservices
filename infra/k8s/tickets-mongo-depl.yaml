@@ -1,28 +1,28 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: auth-mongo-depl
+  name: tickets-mongo-depl
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: auth-mongo
+      app: tickets-mongo
   template:
     metadata:
       labels:
-        app: auth-mongo
+        app: tickets-mongo
     spec:
       containers:
-        - name: auth-mongo
+        - name: tickets-mongo
           image: mongo
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: auth-mongo-clusterip-srv
+  name: tickets-mongo-clusterip-srv
 spec:
   selector:
-    app: auth-mongo
+    app: tickets-mongo
   type: ClusterIP
   ports:
     - name: db

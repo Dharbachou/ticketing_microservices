@@ -1,13 +1,27 @@
 import mongoose from 'mongoose';
 import { app } from './app';
 
+import {natsWrapper} from './nats/nats-wrapper'
+import {closeProcessListener} from "@shootl/common";
+
+import {OrderCreatedListener} from "./events/listeners/order-created-listener";
+import {OrderCancelledListener} from "./events/listeners/order-cancelled-listener";
+
 const start = async () => {
     if (!process.env.JWT_KEY) {
         throw new Error('JWT_KEY must be defined');
     }
-
     if (!process.env.MONGO_URI) {
         throw new Error('MONGO_URI must be defined');
+    }
+    if (!process.env.NATS_CLIENT_ID) {
+        throw new Error('NATS_CLIENT_ID must be defined');
+    }
+    if (!process.env.NATS_URL) {
+        throw new Error('NATS_URL must be defined');
+    }
+    if (!process.env.NATS_CLUSTER_ID) {
+        throw new Error('NATS_CLUSTER_ID must be defined');
     }
 
     try {
@@ -16,6 +30,17 @@ const start = async () => {
             useUnifiedTopology: true,
             useCreateIndex: true
         });
+
+        await natsWrapper.connect(process.env.NATS_CLUSTER_ID, process.env.NATS_CLIENT_ID, process.env.NATS_URL);
+        natsWrapper.client.on('close', () => {
+            console.log('Nats connection has been closed.');
+            process.exit();
+        });
+        closeProcessListener(natsWrapper.client.close.bind(natsWrapper.client));
+
+        new OrderCreatedListener(natsWrapper.client).listen();
+        new OrderCancelledListener(natsWrapper.client).listen();
+
         console.log('Connected to MongoDB');
     } catch (e) {
         console.error(e);
