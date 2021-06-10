@@ -1,12 +1,12 @@
 import mongoose from 'mongoose';
-import { app } from './app';
 
-import {natsWrapper} from './nats/nats-wrapper'
 import {closeProcessListener} from "@shootl/common";
-import {TicketCreatedListener} from "./events/listeners/ticket-created-listener";
-import {TicketUpdatedListener} from "./events/listeners/ticket-updated-listener";
-import {ExpirationCompleteListener} from "./events/listeners/expiration-complete-listener";
-import {PaymentCreatedListener} from "./events/listeners/payment-created-listener";
+
+import { app } from './app';
+import {natsWrapper} from './nats/nats-wrapper'
+import {OrderCreatedListener} from "./events/listeners/order-created-listener";
+import {OrderCancelledListener} from "./events/listeners/order-cancelled-listener";
+
 
 const start = async () => {
     if (!process.env.JWT_KEY) {
@@ -39,10 +39,8 @@ const start = async () => {
         });
         closeProcessListener(natsWrapper.client.close.bind(natsWrapper.client));
 
-        new TicketCreatedListener(natsWrapper.client).listen();
-        new TicketUpdatedListener(natsWrapper.client).listen();
-        new ExpirationCompleteListener(natsWrapper.client).listen();
-        new PaymentCreatedListener(natsWrapper.client).listen();
+        new OrderCreatedListener(natsWrapper.client).listen();
+        new OrderCancelledListener(natsWrapper.client).listen();
 
         console.log('Connected to MongoDB');
     } catch (e) {
